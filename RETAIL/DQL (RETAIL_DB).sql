@@ -1,6 +1,6 @@
 /* QTY OF INVOICES PER CUSTOMER */
 
-SELECT b.customer_first_name as first_name, b.customer_last_name as last_name, b.customer_email as email, b.category_name as category, b.city_name as city, COUNT(i.invoice_id) as qty_invoices
+SELECT b.customer_first_name AS first_name, b.customer_last_name AS last_name, b.customer_email AS email, b.category_name AS category, b.city_name AS city, COUNT(i.invoice_id) as qty_invoices
 FROM (
 	SELECT a.customer_id, a.customer_first_name, a.customer_last_name, a.customer_email, a.category_name, c.city_name
 	FROM (
@@ -28,7 +28,7 @@ GROUP BY a.invoice_id, a.date_invoice, p.product_name, a.quantity, p.product_pri
 
 /* TOTAL AMOUNT PER INVOICES */
 
-SELECT a.invoice_id, a.date_invoice, ROUND(SUM(a.total),2) as total
+SELECT a.invoice_id, a.date_invoice, ROUND(SUM(a.total),2) AS total
 FROM (
 	SELECT a.invoice_id, a.date_invoice, p.product_name, a.quantity, p.product_price, 
 	ROUND((a.quantity*p.product_price),2) AS subtotal, 
