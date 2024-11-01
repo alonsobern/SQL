@@ -81,6 +81,10 @@ INSERT INTO customer VALUES (0,1,2,'Alanis','Costa','0831689635','','alanis@gmai
 INSERT INTO customer VALUES (0,2,3,'Mike','Hammer','0831782742','014795345896','mike@gmail.com');
 INSERT INTO customer VALUES (0,3,4,'Max','Roses','0833698742','','max@gmail.com');
 
+INSERT INTO payment_type VALUES (0,'Cash');
+INSERT INTO payment_type VALUES (0,'Card');
+INSERT INTO payment_type VALUES (0,'Check');
+
 INSERT INTO invoice (customer_id) VALUES (1);
 INSERT INTO invoice (customer_id) VALUES (2);
 INSERT INTO invoice (customer_id) VALUES (3);
@@ -118,3 +122,8 @@ UPDATE customer SET customer_landline_number='0112367896' WHERE customer_id=8;
 UPDATE customer SET customer_last_name='Hinojosa' WHERE customer_id=4;
 UPDATE customer SET customer_email='james@outlook.com' WHERE customer_id=3;
 UPDATE customer SET customer_last_name='Bern' WHERE customer_id=1;
+
+UPDATE invoice SET payment_type_id = 2 WHERE invoice_id = 3;
+UPDATE invoice SET payment_type_id = 2 WHERE invoice_id = 1;
+UPDATE invoice SET payment_type_id = 3 WHERE invoice_id = 7;
+UPDATE invoice SET payment_type_id = 2 WHERE invoice_id = 5;

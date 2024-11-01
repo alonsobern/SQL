@@ -48,6 +48,10 @@ CREATE TABLE customer(
     customer_landline_number varchar(13),
     customer_email varchar(150));
 
+CREATE TABLE payment_type(
+	payment_type_id mediumint auto_increment not null primary key,
+    payment_type_name varchar(50) not null);
+
 CREATE TABLE invoice(
 	invoice_id mediumint auto_increment not null primary key,
     customer_id mediumint not null,
@@ -92,3 +96,8 @@ FOREIGN KEY (invoice_id) REFERENCES invoice(invoice_id) ON DELETE CASCADE;
 
 ALTER TABLE invoice_detail ADD CONSTRAINT fk_invoice_detail_product_id
 FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE;
+
+ALTER TABLE invoice ADD COLUMN payment_type_id mediumint default(1);
+
+ALTER TABLE invoice ADD CONSTRAINT fk_invoice_payment_type_id
+FOREIGN KEY (payment_type_id) REFERENCES payment_type(payment_type_id) ON DELETE CASCADE;

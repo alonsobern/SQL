@@ -32,9 +32,9 @@ GROUP BY a.invoice_id, a.date_invoice, p.product_name, a.quantity, p.product_pri
 
 /* TOTAL AMOUNT PER INVOICES */
 
-SELECT a.invoice_id 'Invoice Number', a.date_invoice AS 'Date Purchased', ROUND(SUM(a.total),2) AS 'Total Amount'
+SELECT a.invoice_id AS 'Invoice Number', a.date_invoice AS 'Date Purchased', ROUND(SUM(a.total),2) AS 'Total Amount'
 FROM (
-	SELECT a.invoice_id, a.date_invoice, p.product_name, a.quantity, p.product_price, 
+	SELECT a.invoice_id, a.date_invoice, a.quantity, p.product_price, 
 	ROUND((a.quantity*p.product_price),2) AS subtotal, 
 	ROUND(((a.quantity*p.product_price)*a.tax),2) AS tax_value, 
 	ROUND(((a.quantity*p.product_price)+((a.quantity*p.product_price)*a.tax)),2) AS total
@@ -43,16 +43,19 @@ FROM (
 		FROM invoice AS i INNER JOIN invoice_detail AS id
 		ON i.invoice_id = id.invoice_id) AS a INNER JOIN product AS p
 	ON a.product_id = p.product_id
-	GROUP BY a.invoice_id, a.date_invoice, p.product_name, a.quantity, p.product_price, a.tax) AS a
+	GROUP BY a.invoice_id, a.date_invoice, a.quantity, p.product_price, a.tax) AS a
 GROUP BY  a.invoice_id, a.date_invoice;
 
 
 
 /* TOTAL AMOUNT PER CUSTOMER AND INVOICES */
 
-SELECT a.customer_first_name AS 'First Name', a.customer_last_name AS 'Last Name', a.customer_mobile_number AS 'Mobile Number', a.customer_email AS 'Email', a.category AS 'Category Customer', 
+SELECT a.customer_first_name AS 'First Name', a.customer_last_name AS 'Last Name', a.customer_mobile_number AS 'Mobile Number', 
+a.customer_email AS 'Email', a.category AS 'Category Customer', 
 CASE WHEN SUM(b.total) > 0 THEN SUM(b.total) ELSE 0 END
-AS 'Total'
+AS 'Total',
+CASE WHEN b.payment_type_name IS NULL THEN 'N/A' ELSE b.payment_type_name END
+AS 'Payment Type'
 FROM (
 	SELECT a.*, i.invoice_id
     FROM (
@@ -61,17 +64,42 @@ FROM (
 		ON c.customer_category_id = cc.customer_category_id) AS a LEFT JOIN invoice AS i
 	ON i.customer_id = a.customer_id) AS a 
     
-    LEFT JOIN (
+    LEFT OUTER JOIN (
 
-	SELECT a.invoice_id, ROUND(SUM(a.total),2) AS total
+	SELECT a.invoice_id, ROUND(SUM(a.total),2) AS total, a.payment_type_name
     FROM (
-		SELECT a.invoice_id, ROUND((a.quantity*p.product_price)+((a.quantity*p.product_price)*a.tax),2) AS total
+		SELECT a.invoice_id, ROUND((a.quantity*p.product_price)+((a.quantity*p.product_price)*a.tax),2) AS total, a.payment_type_name
 		FROM (
-			SELECT i.invoice_id, id.product_id, id.quantity, id.tax
-			FROM invoice AS i INNER JOIN invoice_detail AS id
-			ON i.invoice_id = id.invoice_id ) AS a INNER JOIN product AS p
+			SELECT a.invoice_id, a.product_id, a.quantity, a.tax, pt.payment_type_name
+            FROM (
+				SELECT i.invoice_id, i.payment_type_id, id.product_id, id.quantity, id.tax
+				FROM invoice_detail AS id RIGHT OUTER JOIN invoice AS i
+				ON i.invoice_id = id.invoice_id) AS a LEFT JOIN payment_type pt
+                ON a.payment_type_id = pt.payment_type_id) AS a INNER JOIN product AS p
 		ON p.product_id = a.product_id
 		GROUP BY a.invoice_id, a.tax, a.quantity, p.product_price) AS a
 	GROUP BY a.invoice_id ) AS b
 ON a.invoice_id = b.invoice_id
-GROUP BY a.customer_first_name, a.customer_last_name, a.customer_mobile_number, a.customer_email, a.category;
+GROUP BY a.customer_first_name, a.customer_last_name, a.customer_mobile_number, a.customer_email, a.category, b.payment_type_name;
+
+
+
+/* TOTAL AMOUNT PER PAYMENT TYPE */
+
+SELECT pt.payment_type_name AS 'Payment Type', SUM(a.total_amount) AS 'Total Amount per Payment Type'
+FROM (
+	SELECT a.invoice_id, a.payment_type_id, a.date_invoice, ROUND(SUM(a.total),2) AS 'total_amount'
+	FROM (
+		SELECT a.invoice_id, a.payment_type_id, a.date_invoice, a.quantity, p.product_price, 
+		ROUND((a.quantity*p.product_price),2) AS subtotal, 
+		ROUND(((a.quantity*p.product_price)*a.tax),2) AS tax_value, 
+		ROUND(((a.quantity*p.product_price)+((a.quantity*p.product_price)*a.tax)),2) AS total
+		FROM (
+			SELECT i.invoice_id, i.payment_type_id, i.date_invoice, id.product_id, id.quantity, id.tax
+			FROM invoice AS i INNER JOIN invoice_detail AS id
+			ON i.invoice_id = id.invoice_id) AS a INNER JOIN product AS p
+		ON a.product_id = p.product_id
+		GROUP BY a.invoice_id, a.date_invoice, a.quantity, p.product_price, a.tax) AS a
+	GROUP BY  a.invoice_id, a.date_invoice) AS a INNER JOIN payment_type AS pt
+ON a.payment_type_id = pt.payment_type_id
+GROUP BY pt.payment_type_name;
