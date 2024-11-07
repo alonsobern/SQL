@@ -61,7 +61,7 @@ FROM (
     FROM (
 		SELECT c.customer_id, c.customer_first_name, c.customer_last_name, c.customer_mobile_number, c.customer_email, cc.category_name as category
 		FROM customer AS c INNER JOIN customer_category AS cc
-		ON c.customer_category_id = cc.customer_category_id) AS a LEFT JOIN invoice AS i
+		ON c.customer_category_id = cc.customer_category_id) AS a LEFT OUTER JOIN invoice AS i
 	ON i.customer_id = a.customer_id) AS a 
     
     LEFT OUTER JOIN (
@@ -83,3 +83,5 @@ ON a.invoice_id = b.invoice_id
 GROUP BY a.customer_first_name, a.customer_last_name, a.customer_mobile_number, a.customer_email, a.category, b.payment_type_name;
 
 CALL total_amount_payment('Cash');
+
+CALL check_stock_product('samsung');
